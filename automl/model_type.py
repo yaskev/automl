@@ -1,9 +1,10 @@
 from enum import Enum
+from .models import *
 
 
 class ModelType(Enum):
-    BAGGED_TREES = 'bagged_trees',
-    BOOSTED_TREES = 'boosted_trees',
-    LOG_REGRESSION = 'log_regression',
-    RANDOM_FOREST = 'random_forest',
-    SVM = 'svm'
+    BAGGED_TREES = BaggedTrees
+    BOOSTED_TREES = BoostedTrees
+    LOG_REGRESSION = LogRegression
+    RANDOM_FOREST = RandomForest
+    SVM = SVM
