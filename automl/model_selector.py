@@ -8,29 +8,40 @@ from automl.model_type import ModelType
 
 
 class ModelSelector:
-    """This class suggests """
-    def __init__(self, design_matrix: pd.DataFrame, labels: np.ndarray, metric: MetricType):
+    """This class suggests the fitted model, best among the given set of models"""
+    def __init__(self, design_matrix: pd.DataFrame, labels: np.ndarray, metric: MetricType,
+                 encoder=preprocessing.OrdinalEncoder(),
+                 scaler=preprocessing.StandardScaler()):
         self.X = design_matrix
         self.y = labels
-        self.models = set(ModelType)
-        self.encoder = preprocessing.OrdinalEncoder()
-        self.scaler = preprocessing.StandardScaler()
+        self.models = list(ModelType)
+        self.encoder = encoder
+        self.scaler = scaler
         self.X_train, self.X_test, self.y_train, self.y_test = [None] * 4
         self.metric = metric
+        self.best_model = None
+        self.best_metric = 0
 
-    def get_baseline_model(self):
-        self.do_preprocessing()
-        best_model = None
-        best_metric = 0
-        for model in self.models:
-            curr_model = model.value(False)
-            curr_model.fit(self.X_train, self.y_train)
-            curr_metric = curr_model.score(self.X_test, self.y_test, self.metric)
-            if curr_metric > best_metric:
-                best_model = curr_model
-                best_metric = curr_metric
+    def get_baseline_model(self, fast_mode: bool = False, verbose: bool = True):
+        if self.best_model is None:
+            self.do_preprocessing()
+            for model in self.models:
+                try:
+                    curr_model = model.value(not fast_mode)
+                    if verbose:
+                        print(f'Fitting {curr_model}...')
+                    curr_model.fit(self.X_train, self.y_train)
+                    if verbose:
+                        print(f'Fitted')
+                    curr_metric = curr_model.score(self.X_test, self.y_test, self.metric)
+                    if curr_metric > self.best_metric:
+                        self.best_model = curr_model
+                        self.best_metric = curr_metric
+                except Exception as e:
+                    if verbose:
+                        print(str(e))
 
-        return best_model, best_metric
+        return self.best_model, self.best_metric
 
     def do_preprocessing(self):
         non_numeric_features = self.X.select_dtypes(exclude='number')
@@ -45,9 +56,13 @@ class ModelSelector:
     def turn_on_models(self, *args: ModelType):
         for arg in args:
             if arg in ModelType and arg not in self.models:
-                self.models.add(arg)
+                self.models.append(arg)
+                self.best_model = None
+                self.best_metric = 0
 
     def turn_off_models(self, *args: ModelType):
         for arg in args:
             if arg in ModelType and arg in self.models:
                 self.models.remove(arg)
+                self.best_model = None
+                self.best_metric = 0
