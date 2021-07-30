@@ -24,7 +24,7 @@ class ModelSelector:
 
     def get_baseline_model(self, fast_mode: bool = False, verbose: bool = True):
         if self.best_model is None:
-            self.do_preprocessing()
+            self.__do_preprocessing()
             for model in self.models:
                 try:
                     curr_model = model.value(not fast_mode)
@@ -43,7 +43,7 @@ class ModelSelector:
 
         return self.best_model, self.best_metric
 
-    def do_preprocessing(self):
+    def __do_preprocessing(self):
         non_numeric_features = self.X.select_dtypes(exclude='number')
         transformed_features = self.encoder.fit_transform(non_numeric_features)
         self.X = pd.concat([self.X.select_dtypes(include='number'),
