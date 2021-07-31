@@ -9,7 +9,7 @@ def get_model_and_metric():
     dataset = pd.read_csv('data/example_dataset.csv')
     labels = dataset.loc[:, 'Survived']
     matrix = dataset.loc[:, dataset.columns != 'Survived']
-    selector = ModelSelector(matrix, labels, MetricType.PRECISION)
+    selector = ModelSelector(matrix, labels, MetricType.ACCURACY)
     selector.turn_off_models(ModelType.LOG_REGRESSION)
     return selector.get_baseline_model(fast_mode=False)
 
